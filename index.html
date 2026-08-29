@@ -1,69 +1,126 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="description" content="Affordable and professional web design">
-	  <meta name="keywords" content="web design, affordable web design, professional web design">
-  	<meta name="author" content="Brad Traversy">
-    <title>Acme Web Deisgn | Welcome</title>
-    <link rel="stylesheet" href="./css/style.css">
-    <link rel="icon" href="img/favicon.png">
-  </head>
-  <body>
-    <header>
-      <div class="container">
-        <div id="branding">
-          <h1><span class="highlight">Acme</span> Web Design</h1>
-        </div>
-        <nav>
-          <ul>
-            <li class="current"><a href="index.html">Home</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="services.html">Services</a></li>
-          </ul>
-        </nav>
-      </div>
-    </header>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول - مكتبة علوم الحاسوب</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-container h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .login-container button:hover {
+      background-color: #0056b3;
+    }
+    #errorMsg {
+      color: red;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
 
-    <section id="showcase">
-      <div class="container">
-        <h1>Affordable Professional Web Design</h1>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu luctus ipsum, rhoncus semper magna. Nulla nec magna sit amet sem interdum condimentum.</p>
-      </div>
-    </section>
+  <div class="login-container">
+    <h2>مكتبة علوم الحاسوب</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+      <input type="password" id="password" placeholder="كلمة المرور" required>
+      <button type="submit">تسجيل الدخول</button>
+    </form>
+    <p id="errorMsg"></p>
+  </div>
 
-    <section id="newsletter">
-      <div class="container">
-        <h1>Subscribe To Our Newsletter</h1>
-        <form>
-          <input type="email" placeholder="Enter Email..." required>
-          <button type="submit" class="button_1">Subscribe</button>
-        </form>
-      </div>
-    </section>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <section id="boxes">
-      <div class="container">
-        <div class="box">
-          <img src="./img/logo_html.png">
-          <h3>HTML5 Markup</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mi augue, viverra sit amet ultricies</p>
-        </div>
-        <div class="box">
-          <img src="./img/logo_css.png">
-          <h3>CSS3 Styling</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mi augue, viverra sit amet ultricies</p>
-        </div>
-        <div class="box">
-          <img src="./img/logo_brush.png">
-          <h3>Graphic Design</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mi augue, viverra sit amet ultricies</p>
-        </div>
-      </div>
-    </section>
+    // إعدادات مشروع فايربيس الخاص بك
+    const firebaseConfig = {
+      apiKey: "ضع_مفتاح_الـ_API_هنا",
+      authDomain: "g-5d1ee.firebaseapp.com",
+      projectId: "g-5d1ee",
+      storageBucket: "g-5d1ee.appspot.com",
+      messagingSenderId: "ضع_معرف_المرسل_هنا",
+      appId: "ضع_معرف_التطبيق_هنا"
+    };
 
-    <footer>
-      <p>Acme Web Deisgn, Copyright &copy; 2019</p>
-    </footer>
-  </body>
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMsg');
+      errorMsg.textContent = "جاري التحقق وتسجيل الدخول...";
+
+      try {
+        // 1. تسجيل الدخول عبر نظام المصادقة
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // 2. جلب رتبة المستخدم من مجموعة users في قاعدة البيانات
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const role = userData.role; 
+
+          // 3. التوجيه بناءً على الصلاحية المسجلة
+          if (role === 'admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'catalog.html';
+          }
+        } else {
+          errorMsg.textContent = "حساب المستخدم مسجل ولكن بيانات الصلاحيات غير موجودة في قاعدة البيانات.";
+        }
+      } catch (error) {
+        errorMsg.textContent = "خطأ في البريد الإلكتروني أو كلمة المرور: " + error.message;
+      }
+    });
+  </script>
+
+</body>
 </html>
