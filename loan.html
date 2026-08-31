@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>خدمة الإعارة</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>خدمة الإعارة</h2>
+    
+    <label>معرف الطالب (UID)</label>
+    <input type="text" id="userId" placeholder="أدخل الـ UID الخاص بك">
+
+    <label>معرف الكتاب أو الرسالة (itemId)</label>
+    <input type="text" id="itemId" placeholder="مثال: CS-101">
+
+    <label>نوع العنصر</label>
+    <select id="itemType">
+        <option value="book">كتاب</option>
+        <option value="thesis">رسالة جامعية</option>
+    </select>
+
+    <label>تاريخ الإعارة</label>
+    <input type="date" id="loanDate">
+
+    <label>تاريخ الإرجاع المتوقع</label>
+    <input type="date" id="returnDate">
+
+    <button onclick="submitLoan()">إرسال طلب الإعارة</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
+    import { getFirestore, collection, addDoc, updateLink, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
+
+    // ضع إعدادات مشروعك هنا
+    const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "..." };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.submitLoan = async function() {
+        const userId = document.getElementById('userId').value;
+        const itemId = document.getElementById('itemId').value;
+        const itemType = document.getElementById('itemType').value;
+        const loanDate = document.getElementById('loanDate').value;
+        const returnDate = document.getElementById('returnDate').value;
+
+        if(!userId || !itemId) {
+            alert("الرجاء تعبئة الحقول الأساسية.");
+            return;
+        }
+
+        try {
+            // إضافة سجل في جدول loans
+            await addDoc(collection(db, "loans"), {
+                userId: userId,
+                itemId: itemId,
+                itemType: itemType,
+                loanDate: loanDate,
+                returnDate: returnDate,
+                status: "active"
+            });
+            alert("تم إرسال طلب الإعارة بنجاح وتحديث السجلات!");
+        } catch(e) {
+            alert("حدث خطأ: " + e.message);
+        }
+    }
+</script>
+</body>
+</html>

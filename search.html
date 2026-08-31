@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>خدمة البحث الشامل</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        input, button { width: 100%; padding: 10px; margin-top: 8px; margin-bottom: 15px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .result-box { background: #e9ecef; padding: 10px; margin-top: 10px; border-radius: 4px; max-height: 250px; overflow-y: auto; }
+        .item { background: white; padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>خدمة البحث الشامل في المكتبة</h2>
+    
+    <input type="text" id="searchKeyword" placeholder="ابحث عن عنوان كتاب، رسالة، أو مؤلف...">
+    <button onclick="performSearch()">بحث</button>
+    
+    <div id="searchResults" class="result-box" style="display:none;"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "..." };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.performSearch = async function() {
+        const keyword = document.getElementById('searchKeyword').value.trim().toLowerCase();
+        const resultsDiv = document.getElementById('searchResults');
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = "جاري البحث...";
+
+        if(!keyword) {
+            resultsDiv.innerHTML = "الرجاء إدخال كلمة للبحث.";
+            return;
+        }
+
+        try {
+            let htmlOutput = "";
+
+            // البحث في الكتب
+            const booksSnap = await getDocs(collection(db, "books"));
+            booksSnap.forEach(doc => {
+                const data = doc.data();
+                if((data.title && data.title.toLowerCase().includes(keyword)) || 
+                   (data.author && data.author.toLowerCase().includes(keyword))) {
+                    htmlOutput += `<div class="item"><strong>📚 كتاب:</strong> ${data.title} - المؤلف: ${data.author}</div>`;
+                }
+            });
+
+            // البحث في الرسائل الجامعية
+            const thesesSnap = await getDocs(collection(db, "theses"));
+            thesesSnap.forEach(doc => {
+                const data = doc.data();
+                if((data.title && data.title.toLowerCase().includes(keyword)) || 
+                   (data.author && data.author.toLowerCase().includes(keyword))) {
+                    htmlOutput += `<div class="item"><strong>🎓 رسالة:</strong> ${data.title} - الباحث: ${data.author}</div>`;
+                }
+            });
+
+            resultsDiv.innerHTML = htmlOutput || "لا توجد نتائج مطابقة لبحثك.";
+        } catch(e) {
+            resultsDiv.innerHTML = "حدث خطأ أثناء البحث: " + e.message;
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تسجيل دخول الطالب - المكتبة الرقمية</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #eef2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        h2 { color: #2c3e50; margin-bottom: 20px; }
+        label { display: block; text-align: right; margin-top: 10px; font-weight: bold; color: #555; }
+        input { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; background: #007bff; color: white; padding: 12px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .secondary-btn { background: #6c757d; margin-top: 10px; }
+        .secondary-btn:hover { background: #5a6268; }
+        .error { color: red; margin-top: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <h2>بوابة الطالب والباحث</h2>
+    
+    <label>البريد الإلكتروني</label>
+    <input type="email" id="email" placeholder="example@univ.edu">
+
+    <label>كلمة المرور</label>
+    <input type="password" id="password" placeholder="••••••••">
+
+    <button onclick="loginStudent()">تسجيل الدخول</button>
+    <button class="secondary-btn" onclick="goToRegister()">إنشاء حساب جديد</button>
+    
+    <div id="msg" class="error"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "..." };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.loginStudent = async function() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const msg = document.getElementById('msg');
+        msg.innerText = "";
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().role === "student") {
+                localStorage.setItem("studentUid", user.uid);
+                window.location.href = "catalog.html";
+            } else {
+                msg.innerText = "هذا الحساب غير مسجل كحساب طالب.";
+            }
+        } catch (error) {
+            msg.innerText = "خطأ في تسجيل الدخول: " + error.message;
+        }
+    }
+
+    window.goToRegister = function() {
+        window.location.href = "register.html";
+    }
+</script>
+</body>
+</html>
